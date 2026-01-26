@@ -131,7 +131,9 @@ Do you also want to link this to a parent epic? (provide CRDB-XXXXX key if so)
 
 ## Resolving Assignees
 
-When the user says "for wenyi@", "assigned to wenyi", or similar, **always verify** the email by searching git history (since Jira silently ignores invalid assignees):
+**Self-assignment**: When the user says "for me", "assign to me", "myself", or similar self-references, use the `$JIRA_EMAIL` environment variable directly. Do not look up the email from git history (the user may use a different email for commits than for Jira).
+
+**Other assignees**: When the user says "for wenyi@", "assigned to wenyi", or similar, **always verify** the email by searching git history (since Jira silently ignores invalid assignees):
 
 ```bash
 git log --since="3 months ago" --format='%an <%ae>' | sort -u | grep -i "<name>"
@@ -142,6 +144,7 @@ git log --since="3 months ago" --format='%an <%ae>' | sort -u | grep -i "<name>"
 - **No matches**: Ask the user for the full email address
 
 Examples:
+- "for me" → use `$JIRA_EMAIL` directly
 - "for wenyi" → search git log, find `Wenyi Hu <wenyi@cockroachlabs.com>`, use `wenyi@cockroachlabs.com`
 - "assign to nick" → search git log, find `Nick Travers <nick@cockroachlabs.com>`, use `nick@cockroachlabs.com`
 - "for john" → if multiple Johns found, ask: "Did you mean john.smith@ or john.doe@?"
