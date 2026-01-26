@@ -58,14 +58,16 @@ Internal tasks are brief work items for sprint tracking:
 
 ## Script Usage
 
-The skill uses a Go tool at `cmd/jira-task/`:
+The skill uses a Go tool located at `.cursor/commands/kv/create-jira-task/cmd/jira-task`. To invoke it, `cd` into that directory and use `go run ./...`:
 
 ```bash
+cd .cursor/commands/kv/create-jira-task/cmd/jira-task
+
 # List sprints (active + future, excluding closed) - safe to run for sanity checks
-go run ./cmd/jira-task sprints
+go run ./... sprints
 
 # Create an internal task (--sprint and --assignee are REQUIRED)
-go run ./cmd/jira-task create \
+go run ./... create \
   --title "Brief task title" \
   --description "Task description with context" \
   --sprint <numeric-id|latest|-1> \
@@ -77,7 +79,7 @@ go run ./cmd/jira-task create \
 
 The `--sprint` flag is **required** and must be passed explicitly. The agent must always ask the user to decide sprint behavior:
 
-1. **Preferred: Use a numeric sprint ID** - Run `jira-task sprints` to list available sprints and pick the appropriate ID
+1. **Preferred: Use a numeric sprint ID** - Run `go run ./... sprints` to list available sprints and pick the appropriate ID
 2. **Use `latest`** - Only if the user explicitly says "current sprint" or "latest sprint"
 3. **Use `-1` (backlog)** - If the user says "backlog", "put it in the backlog", "in the backlog", or otherwise indicates they don't want it in any sprint
 
@@ -105,7 +107,7 @@ The `--sprint` flag is **required** and must be passed explicitly. The agent mus
 - This tool ONLY creates "Internal Task" issue types
 - Never send API requests directly—always use the tool
 - **During development/testing, NEVER actually create Jira tickets**
-- You MAY run `jira-task sprints` for sanity checks (it has no side effects)
+- You MAY run `go run ./... sprints` for sanity checks (it has no side effects)
 
 ## Example Interaction
 

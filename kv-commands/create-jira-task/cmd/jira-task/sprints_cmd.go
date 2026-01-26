@@ -30,7 +30,7 @@ func newSprintsCmd() *cobra.Command {
 		RunE:  runSprints,
 	}
 
-	cmd.Flags().StringVar(&sprintsToken, "token", os.Getenv("JIRA_TOKEN"), "Jira API token (default: $JIRA_TOKEN)")
+	cmd.Flags().StringVar(&sprintsToken, "token", os.Getenv("JIRA_API_TOKEN"), "Jira API token (default: $JIRA_API_TOKEN)")
 	cmd.Flags().StringVar(&sprintsEmail, "email", os.Getenv("JIRA_EMAIL"), "Jira account email (default: $JIRA_EMAIL)")
 	cmd.Flags().StringVar(&sprintsEngTeam, "eng-team", os.Getenv("JIRA_ENG_TEAM"), "Engineering team (default: $JIRA_ENG_TEAM)")
 	cmd.Flags().IntVar(&sprintsBoardID, "board-id", 0, "Sprint board ID (default: $JIRA_<ENG_TEAM>_BOARD_ID)")

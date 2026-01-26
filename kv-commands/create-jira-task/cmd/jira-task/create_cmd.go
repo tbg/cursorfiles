@@ -29,7 +29,7 @@ func newCreateCmd() *cobra.Command {
 	}
 
 	// Auth/config flags
-	cmd.Flags().StringVar(&createToken, "token", os.Getenv("JIRA_TOKEN"), "Jira API token (default: $JIRA_TOKEN)")
+	cmd.Flags().StringVar(&createToken, "token", os.Getenv("JIRA_API_TOKEN"), "Jira API token (default: $JIRA_API_TOKEN)")
 	cmd.Flags().StringVar(&createEmail, "email", os.Getenv("JIRA_EMAIL"), "Jira account email (default: $JIRA_EMAIL)")
 	cmd.Flags().StringVar(&createProject, "project", "CRDB", "Jira project key")
 	cmd.Flags().StringVar(&createEngTeam, "eng-team", os.Getenv("JIRA_ENG_TEAM"), "Engineering team (default: $JIRA_ENG_TEAM)")
