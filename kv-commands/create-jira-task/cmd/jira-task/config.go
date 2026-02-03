@@ -7,9 +7,11 @@ import (
 	"strings"
 )
 
+const envHelpHint = `Run "jira-task help" for environment setup.`
+
 func resolveBoardID(engTeam string, boardID int) (int, error) {
 	if engTeam == "" {
-		return 0, fmt.Errorf("eng-team is required (set --eng-team or $JIRA_ENG_TEAM)")
+		return 0, fmt.Errorf("eng-team is required (set --eng-team or $JIRA_ENG_TEAM). %s", envHelpHint)
 	}
 
 	if boardID != 0 {
@@ -25,5 +27,5 @@ func resolveBoardID(engTeam string, boardID int) (int, error) {
 		return resolvedBoardID, nil
 	}
 
-	return 0, fmt.Errorf("board-id is required (set --board-id or $%s, or -1 to skip)", envVar)
+	return 0, fmt.Errorf("board-id is required (set --board-id or $%s, or -1 to skip). %s", envVar, envHelpHint)
 }

@@ -230,10 +230,10 @@ func (c *RealJiraClient) VerifyIssue(issueKey string, params TaskParams) []strin
 // validateConfig validates the Jira configuration.
 func validateConfig(config JiraConfig) error {
 	if config.Token == "" {
-		return fmt.Errorf("token is required (set --token or $JIRA_API_TOKEN)\n  Get one at: https://id.atlassian.com/manage-profile/security/api-tokens")
+		return fmt.Errorf("token is required (set --token or $JIRA_API_TOKEN)\n  Get one at: https://id.atlassian.com/manage-profile/security/api-tokens\n  %s", envHelpHint)
 	}
 	if config.Email == "" {
-		return fmt.Errorf("email is required (set --email or $JIRA_EMAIL)")
+		return fmt.Errorf("email is required (set --email or $JIRA_EMAIL). %s", envHelpHint)
 	}
 	return nil
 }

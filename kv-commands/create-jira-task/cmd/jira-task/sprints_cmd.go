@@ -51,6 +51,9 @@ func runSprints(cmd *cobra.Command, args []string) error {
 		EngTeam: sprintsEngTeam,
 		BoardID: resolvedBoardID,
 	}
+	if err := validateConfig(config); err != nil {
+		return err
+	}
 	client := &RealJiraClient{Config: config}
 
 	sprints, err := client.fetchNonClosedSprints()

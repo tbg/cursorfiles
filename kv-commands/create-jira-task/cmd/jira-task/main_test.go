@@ -47,7 +47,7 @@ func TestValidateConfig(t *testing.T) {
 				Project: "CRDB",
 			},
 			wantErr: true,
-			errMsg:  "token is required (set --token or $JIRA_API_TOKEN)\n  Get one at: https://id.atlassian.com/manage-profile/security/api-tokens",
+			errMsg:  "token is required (set --token or $JIRA_API_TOKEN)\n  Get one at: https://id.atlassian.com/manage-profile/security/api-tokens\n  Run \"jira-task help\" for environment setup.",
 		},
 		{
 			name: "missing email",
@@ -56,7 +56,7 @@ func TestValidateConfig(t *testing.T) {
 				Project: "CRDB",
 			},
 			wantErr: true,
-			errMsg:  "email is required (set --email or $JIRA_EMAIL)",
+			errMsg:  "email is required (set --email or $JIRA_EMAIL). Run \"jira-task help\" for environment setup.",
 		},
 	}
 
@@ -212,7 +212,7 @@ func TestRun(t *testing.T) {
 			},
 			mockClient: &MockJiraClient{},
 			wantErr:    true,
-			errMsg:     "token is required (set --token or $JIRA_API_TOKEN)\n  Get one at: https://id.atlassian.com/manage-profile/security/api-tokens",
+			errMsg:     "token is required (set --token or $JIRA_API_TOKEN)\n  Get one at: https://id.atlassian.com/manage-profile/security/api-tokens\n  Run \"jira-task help\" for environment setup.",
 		},
 		{
 			name:   "API error during task creation",

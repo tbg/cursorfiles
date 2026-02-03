@@ -11,11 +11,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const envHelp = `
+Environment variables:
+  export JIRA_EMAIL="<youremail>@cockroachlabs.com"
+  # Generate from https://id.atlassian.com/manage-profile/security/api-tokens.export
+  export JIRA_API_TOKEN="your-token-here"
+  # The "Engineering Team" dropdown in Jira.
+  export JIRA_ENG_TEAM="KV"
+  # From your board's URL.
+  export JIRA_KV_BOARD_ID=400
+`
+
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "jira-task",
 		Short: "Manage Jira internal tasks and sprints",
 	}
+	rootCmd.SetHelpTemplate(rootCmd.HelpTemplate() + envHelp)
 
 	rootCmd.AddCommand(newCreateCmd())
 	rootCmd.AddCommand(newSprintsCmd())
