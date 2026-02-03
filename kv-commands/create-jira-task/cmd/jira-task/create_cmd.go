@@ -40,12 +40,11 @@ func newCreateCmd() *cobra.Command {
 	cmd.Flags().StringVar(&createDescription, "description", "", "Task description (required)")
 	cmd.Flags().StringVar(&createParent, "parent", "", "Parent issue key, e.g., CRDB-12345 (optional)")
 	cmd.Flags().StringVar(&createSprint, "sprint", "", "Sprint: numeric ID, \"latest\", or -1 to skip (required)")
-	cmd.Flags().StringVar(&createAssignee, "assignee", "", "Assignee email, or \"unassigned\" to skip (required)")
+	cmd.Flags().StringVar(&createAssignee, "assignee", "unassigned", "Assignee email (default: unassigned)")
 
 	_ = cmd.MarkFlagRequired("title")
 	_ = cmd.MarkFlagRequired("description")
 	_ = cmd.MarkFlagRequired("sprint")
-	_ = cmd.MarkFlagRequired("assignee")
 
 	return cmd
 }

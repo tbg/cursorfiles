@@ -64,12 +64,12 @@ The skill uses a Go tool `jira-task` located at `<repo-root>.cursor/commands/kv/
 # List sprints (active + future, excluding closed) - safe to run for sanity checks
 go run ./... sprints
 
-# Create an internal task (--sprint and --assignee are REQUIRED)
+# Create an internal task (--sprint is REQUIRED, --assignee defaults to unassigned)
 go run ./... create \
   --title "Brief task title" \
   --description "Task description with context" \
   --sprint <numeric-id|latest|-1> \
-  --assignee <email|unassigned> \
+  [--assignee <email>] \
   [--parent CRDB-12345]
 ```
 
@@ -90,7 +90,7 @@ The `--sprint` flag is **required** and must be passed explicitly. The agent mus
 - `--description`: Required. The task description/body
 - `--sprint`: **Required**. Numeric sprint ID (preferred), `latest`, or `-1` for backlog (no sprint)
 - `--parent`: Optional. Parent issue key (e.g., CRDB-12345)
-- `--assignee`: **Required**. Email address of the assignee, or `"unassigned"` to create without an assignee
+- `--assignee`: Optional. Email address of the assignee. Defaults to `"unassigned"` if not specified
 - `--project`: Defaults to `CRDB`
 
 **Auth Parameters (from environment—never pass explicitly):**
@@ -130,6 +130,8 @@ Do you also want to link this to a parent epic? (provide CRDB-XXXXX key if so)
 **Assistant:** [Runs the tool with explicit --sprint flag]
 
 ## Resolving Assignees
+
+**Default behavior**: If the user does not specify an assignee, create the task as unassigned (do not pass `--assignee`). Only pass `--assignee` when the user explicitly requests assignment.
 
 **Self-assignment**: When the user says "for me", "assign to me", "myself", or similar self-references, use the `$JIRA_EMAIL` environment variable directly. Do not look up the email from git history (the user may use a different email for commits than for Jira).
 
