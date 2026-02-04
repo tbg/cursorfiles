@@ -6,26 +6,32 @@ allow this for commands, hence the approach in this repository.
 
 ## Setup
 
-```
-DEST=$HOME/go/src/github.com/tbg
-mkdir -p "$DEST"
+```sh
+DEST=$HOME/go/src/github.com/tbg/cursorfiles
+mkdir -p "$(dirname "$DEST")"
 git clone https://github.com/tbg/cursorfiles "$DEST"
+cd "$DEST"
+
+# Optional: install git hook to auto-sync on pull
+./sync.sh add-hook
 ```
 
 ## Usage
 
-`[target_repo]` defaults to the cockroach repo if no target is specified.
+```sh
+./sync.sh sync       # create symlinks in target repo
+./sync.sh clear      # remove symlinks from target repo
+./sync.sh add-hook   # install post-merge hook for auto-sync
+./sync.sh del-hook   # remove post-merge hook
+```
 
-Commands prompts before deleting files.
+With the hook installed, `git pull` on master/main automatically runs `sync`.
+
+## Configuration
+
+Target repo defaults to `~/go/src/github.com/cockroachdb/cockroach`. To customize:
 
 ```sh
-git pull
-./sync.sh sync [target_repo]   # sync commands and rules to target
-```
-
-To remove installed rules:
-
-```
-./sync.sh clear [target_repo]
+git config cursorfiles.target /path/to/your/repo
 ```
 
