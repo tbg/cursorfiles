@@ -54,7 +54,7 @@ if [ ! -d "$TARGET_REPO" ]; then
 fi
 
 # Process a source/dest directory pair
-# For sync: delete orphans, then symlink
+# For sync: delete orphans, then copy
 # For clear: delete everything
 process_dir() {
   src_dir="$1"
@@ -93,19 +93,13 @@ process_dir() {
   # Delete
   find "$dest_dir" -mindepth 1 -delete 2>/dev/null || true
 
-  # Create symlinks (sync only)
+  # Copy files (sync only)
   if [ "$CMD" = "sync" ] && [ -n "$(ls -A "$SCRIPT_DIR/$src_dir" 2>/dev/null)" ]; then
-    (cd "$SCRIPT_DIR/$src_dir" && find . -type f) | while read -r file; do
-      file="${file#./}"
-      src_file="$SCRIPT_DIR/$src_dir/$file"
-      dest_file="$dest_dir/$file"
-      mkdir -p "$(dirname "$dest_file")"
-      ln -s "$src_file" "$dest_file"
-    done
+    cp -r "$SCRIPT_DIR/$src_dir"/* "$dest_dir/"
   fi
 
   if [ "$CMD" = "sync" ]; then
-    echo "Symlinked $src_dir to $dest_dir"
+    echo "Synced $src_dir to $dest_dir"
   else
     echo "Cleared $dest_dir"
   fi
