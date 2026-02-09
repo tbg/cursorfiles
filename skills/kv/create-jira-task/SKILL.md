@@ -94,7 +94,7 @@ The `--sprint` flag is **required** and must be passed explicitly. The agent mus
 - `--project`: Defaults to `CRDB`
 
 **Auth Parameters (from environment—never pass explicitly):**
-- `--token`: From `$JIRA_TOKEN`
+- `--token`: From `$JIRA_API_TOKEN`
 - `--email`: From `$JIRA_EMAIL`
 
 **Team Parameters (from environment, override if user specifies their team):**

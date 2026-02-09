@@ -97,8 +97,14 @@ grep -r "error message" pkg/
 If necessary, you can download the test artifacts from the build server. This only works
 for TeamCity-sourced issues at this point.
 
-Determine the TeamCity Build ID from the issue and use
-<git-root>/cmd/teamcity-dl <buildid> to download the artifacts to the workspace.
+Determine the TeamCity Build ID from the issue and use the `teamcity-dl` tool
+to download the artifacts to the workspace. The tool lives in a companion
+directory next to this skill file: take the path you used to read this `.md`
+file, strip the `.md` suffix, and append `/cmd/teamcity-dl`. For example, if you
+read this file from `~/.cursor/agents/kv.investigator.md`, the tool is at
+`~/.cursor/agents/kv.investigator/cmd/teamcity-dl`. Run it via
+`go run <tool-path> <buildid> <workspace>`.
+
 These are ALL artifacts and often contain logs not relevant to the issue.
 Grep-list files related to the test name first to determine where the relevant
 logs are, then explore only those.
