@@ -109,6 +109,18 @@ each individual commit. Be mindful of turnaround:
 - **Run the right scope.** Use targeted test runs (specific packages or test
   names) rather than running the entire suite when appropriate.
 
+## Bazel Build Files
+
+Bazel `BUILD.bazel` files are **auto-generated**. Never edit them by hand.
+After adding, removing, or renaming Go files or changing dependencies, run:
+
+```
+./dev gen bazel
+```
+
+This regenerates all `BUILD.bazel` files. Commit the result together with the
+source changes that triggered the regeneration.
+
 ## Go Conventions
 
 - Use **camelCase** for identifiers: `HTTP`, not `Http`; `ID`, not `Id`.
