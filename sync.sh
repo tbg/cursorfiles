@@ -5,12 +5,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 usage() {
   echo "Usage: $0 <sync|clear|add-hook|del-hook>" >&2
-  echo "  sync      - sync commands and rules to target repo" >&2
-  echo "  clear     - remove synced commands and rules from target repo" >&2
+  echo "  sync      - symlink skills, agents, and rules into ~/.claude/" >&2
+  echo "  clear     - remove symlinks from ~/.claude/" >&2
   echo "  add-hook  - install git post-merge hook to auto-sync on pull" >&2
   echo "  del-hook  - remove git post-merge hook" >&2
   echo "" >&2
-  echo "Target repo: git config cursorfiles.target (default: ~/go/src/github.com/cockroachdb/cockroach)" >&2
+  echo "Symlinks {skills,agents,rules}/<team>/ dirs into ~/.claude/" >&2
   exit 1
 }
 
@@ -19,10 +19,8 @@ if [ $# -lt 1 ]; then
 fi
 
 CMD="$1"
-DEFAULT_TARGET="$HOME/go/src/github.com/cockroachdb/cockroach"
-TARGET_REPO="$(git -C "$SCRIPT_DIR" config --get cursorfiles.target 2>/dev/null || echo "$DEFAULT_TARGET")"
 
-# Handle add-hook/del-hook before target repo validation
+# Handle add-hook/del-hook before validation
 if [ "$CMD" = "add-hook" ]; then
   HOOK_FILE="$SCRIPT_DIR/.git/hooks/post-merge"
   mkdir -p "$SCRIPT_DIR/.git/hooks"
@@ -48,62 +46,49 @@ case "$CMD" in
   *) usage ;;
 esac
 
-if [ ! -d "$TARGET_REPO" ]; then
-  echo "Error: target repo does not exist: $TARGET_REPO" >&2
-  exit 1
-fi
+# Symlink a source directory to a destination path.
+# For sync: create symlink (replacing any existing file/dir/symlink)
+# For clear: remove symlink
+link_dir() {
+  src="$SCRIPT_DIR/$1"
+  dest="$2"
 
-# Process a source/dest directory pair
-# For sync: delete orphans, then copy
-# For clear: delete everything
-process_dir() {
-  src_dir="$1"
-  dest_dir="$2"
-
-  if [ ! -d "$dest_dir" ]; then
-    if [ "$CMD" = "sync" ] && [ -d "$SCRIPT_DIR/$src_dir" ]; then
-      mkdir -p "$dest_dir"
-    else
-      return 0
+  if [ "$CMD" = "clear" ]; then
+    if [ -L "$dest" ]; then
+      rm "$dest"
+      echo "Removed $dest"
+    elif [ -e "$dest" ]; then
+      echo "Warning: $dest exists but is not a symlink, skipping" >&2
     fi
+    return 0
   fi
 
-  # Find files to delete
-  if [ "$CMD" = "sync" ]; then
-    # Orphans: files in dest but not in source
-    src_files=$(cd "$SCRIPT_DIR/$src_dir" && find . -type f 2>/dev/null | sort)
-    dest_files=$(cd "$dest_dir" && find . -type f 2>/dev/null | sort)
-    tmp_src=$(mktemp)
-    tmp_dest=$(mktemp)
-    echo "$src_files" > "$tmp_src"
-    echo "$dest_files" > "$tmp_dest"
-    to_delete=$(comm -23 "$tmp_dest" "$tmp_src")
-    rm -f "$tmp_src" "$tmp_dest"
-  else
-    # Clear: all files in dest
-    to_delete=$(cd "$dest_dir" && find . -type f 2>/dev/null | sort)
+  # sync
+  if [ ! -d "$src" ]; then
+    echo "Warning: source $src does not exist, skipping" >&2
+    return 0
   fi
 
-  # Log files being deleted
-  if [ -n "$to_delete" ]; then
-    echo "[$src_dir] Deleting orphaned files:"
-    echo "$to_delete" | sed 's|^\./|  |'
+  mkdir -p "$(dirname "$dest")"
+
+  if [ -L "$dest" ]; then
+    rm "$dest"
+  elif [ -e "$dest" ]; then
+    echo "Warning: $dest exists but is not a symlink, replacing" >&2
+    rm -rf "$dest"
   fi
 
-  # Delete
-  find "$dest_dir" -mindepth 1 -delete 2>/dev/null || true
-
-  # Copy files (sync only)
-  if [ "$CMD" = "sync" ] && [ -n "$(ls -A "$SCRIPT_DIR/$src_dir" 2>/dev/null)" ]; then
-    cp -r "$SCRIPT_DIR/$src_dir"/* "$dest_dir/"
-  fi
-
-  if [ "$CMD" = "sync" ]; then
-    echo "Synced $src_dir to $dest_dir"
-  else
-    echo "Cleared $dest_dir"
-  fi
+  ln -s "$src" "$dest"
+  echo "$dest -> $src"
 }
 
-process_dir "kv-commands" "$TARGET_REPO/.cursor/commands/kv"
-process_dir "kv-rules" "$TARGET_REPO/.cursor/rules/kv"
+# For each category, symlink every team-level subdirectory (e.g. skills/kv, agents/kv).
+for category in skills agents rules; do
+  if [ -d "$SCRIPT_DIR/$category" ]; then
+    for team_dir in "$SCRIPT_DIR/$category"/*/; do
+      [ -d "$team_dir" ] || continue
+      team="$(basename "$team_dir")"
+      link_dir "$category/$team" "$HOME/.claude/$category/$team"
+    done
+  fi
+done
