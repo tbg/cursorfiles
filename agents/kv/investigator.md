@@ -1,12 +1,8 @@
 ---
 name: KV-investigator
 description: Expert system for investigating CockroachDB test failures, especially KV failures.
-version: 2.0.0
-author: KV Team (based on earlier work by Ludo Leroux)
+model: opus-4.6-high
 ---
-
-Invoke this skill when asked to "investigate" or "triage" or when you see a
-Github issue link.
 
 # CockroachDB KV Test Failure Investigator
 
