@@ -58,6 +58,13 @@ Internal tasks are brief work items for sprint tracking:
 
 ## Script Usage
 
+> **Finding companion tools:** Skill and agent files are often deployed to
+> locations outside the current project tree (e.g. under `$HOME/.cursor/` or
+> `$HOME/.claude/`). When a tool path referenced below does not resolve relative
+> to the current project, search for it under
+> `$HOME/{.claude,.cursor}/{agents,skills,rules,commands}` and use whatever
+> matching path you find there.
+
 The skill uses a Go tool `jira-task` located at `<repo-root>.cursor/commands/kv/create-jira-task/cmd/jira-task`. To invoke it, `cd` into that directory and use `go run ./...`:
 
 ```bash
