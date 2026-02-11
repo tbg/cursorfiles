@@ -4,14 +4,15 @@ set -eu
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 usage() {
-  echo "Usage: $0 <sync|clear|add-hook|del-hook>" >&2
-  echo "  sync      - copy skills, agents, and rules into ~/.claude/ and ~/.cursor/" >&2
-  echo "  clear     - remove synced items from ~/.claude/ and ~/.cursor/" >&2
-  echo "  add-hook  - install git post-merge hook to auto-sync on pull" >&2
-  echo "  del-hook  - remove git post-merge hook" >&2
+  echo "Usage: $0 <sync|clear>" >&2
+  echo "  sync  - copy skills, agents, and rules into ~/.claude/ and ~/.cursor/" >&2
+  echo "  clear - remove synced items from ~/.claude/ and ~/.cursor/" >&2
   echo "" >&2
   echo "Flattens {skills,agents,rules}/<team>/<name> to ~/.<target>/<category>/<team>.<name>" >&2
   echo "where <target> is both 'claude' and 'cursor'." >&2
+  echo "" >&2
+  echo "Tip: auto-sync on pull/push by setting:" >&2
+  echo "  git config core.hooksPath ./githooks" >&2
   exit 1
 }
 
@@ -20,27 +21,6 @@ if [ $# -lt 1 ]; then
 fi
 
 CMD="$1"
-
-# Handle add-hook/del-hook before validation
-if [ "$CMD" = "add-hook" ]; then
-  HOOK_FILE="$SCRIPT_DIR/.git/hooks/post-merge"
-  mkdir -p "$SCRIPT_DIR/.git/hooks"
-  cp "$SCRIPT_DIR/githooks/post-merge.sh" "$HOOK_FILE"
-  chmod +x "$HOOK_FILE"
-  echo "Installed post-merge hook at $HOOK_FILE"
-  exit 0
-fi
-
-if [ "$CMD" = "del-hook" ]; then
-  HOOK_FILE="$SCRIPT_DIR/.git/hooks/post-merge"
-  if [ -f "$HOOK_FILE" ]; then
-    rm "$HOOK_FILE"
-    echo "Removed post-merge hook at $HOOK_FILE"
-  else
-    echo "No post-merge hook found at $HOOK_FILE"
-  fi
-  exit 0
-fi
 
 case "$CMD" in
   sync|clear) ;;
