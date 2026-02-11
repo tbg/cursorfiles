@@ -1,5 +1,5 @@
 ---
-name: kv-develop
+name: develop
 description: Produce high-quality, reviewable, and maintainable software through a disciplined, unsupervised development workflow. Use when tasked with implementing a feature, fix, or improvement that should result in a polished chain of git commits.
 ---
 
