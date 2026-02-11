@@ -147,9 +147,12 @@ read this file from `~/.cursor/agents/kv.investigator.md`, the tool is at
 `~/.cursor/agents/kv.investigator/cmd/teamcity-dl`. Run it via
 `go run <tool-path> <buildid> <workspace>`.
 
-These are ALL artifacts and often contain logs not relevant to the issue.
-Grep-list files related to the test name first to determine where the relevant
-logs are, then explore only those.
+Always download the full set of artifacts—do not skip or selectively download
+to save time/space. The downloads go to `/tmp` so disk space is not a concern,
+and having the complete artifacts available avoids repeat downloads later when
+the investigation leads to files you didn't initially expect to need. The
+artifacts will contain many logs not relevant to the issue; after downloading,
+grep-list files related to the test name first to find the relevant ones.
 
 Key files to examine for roachtests:
 - `test.log` - Primary test output, start here
