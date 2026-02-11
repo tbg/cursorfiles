@@ -65,9 +65,10 @@ If a prior failure was closed but seems related, ascertain whether the fix
 attempt is present in the git history of the failure under investigation by
 matching the title of the fix commit(s) against the history of the failure SHA. You can do this in the original cockroach repo - no need to make a worktree for just this check. However, check which remotes are configured, as not everyone uses `origin` - some people use `upstream` for the official `cockroachdb/cockroach` repo, and you may need to `git fetch` the branch if a specific SHA is not found.
 
-Set up a workspace (create a directory) in `../../artifacts/<issue-num>`
-(relative to this skill's directory) and use it for any file downloads mentioned
-in the following steps.
+Set up a workspace (create a directory) in `/tmp/kv-investigator/<issue-num>`
+and use it for any file downloads mentioned in the following steps. Do not place
+the workspace inside the CockroachDB repository—nested directories there
+(even if `.gitignore`d) slow down `git status` and confuse some tools.
 
 ### Read the Source Code
 
@@ -92,15 +93,28 @@ git checkout <sha>
 > use (e.g. under `$HOME/.cursor/`, `$HOME/.claude/`, or a similar
 > automation-managed directory).
 
+Whichever path you take, **state your determination explicitly** before
+proceeding—e.g. "My working directory is `<path>`, which is under
+`$HOME/.cursor`, and contains a CockroachDB checkout, so I will reuse it" or
+"My working directory is `<path>`, which does not appear to be an
+agent-dedicated worktree, so I will create a new one." This makes the decision
+auditable and easier for the user to correct if needed.
+
 **Otherwise, create a new worktree.** Locate the CockroachDB repository; it is
 typically in `$(go env GOPATH)/src/github.com/cockroachdb/cockroach`. Then,
 create a worktree in the workspace:
 
 ```
-git -c core.hooksPath=/dev/null -c submodule.recurse=false -c fetch.recurseSubmodules=false worktree add <workspace-path>/cockroach <sha>
+git -c core.hooksPath=/dev/null -c submodule.recurse=false -c fetch.recurseSubmodules=false worktree add /tmp/kv-investigator/<issue-num>/cockroach <sha>
 ```
 
 and explore as you see fit.
+
+**Never remove worktrees.** Whether you are reusing a pre-assigned worktree or
+one you created yourself, do not run `git worktree remove` or otherwise delete
+it when you are done. Pre-assigned worktrees are managed by the invoking
+infrastructure and may be reused across sessions. Even worktrees you created are
+cheap to keep around and the user can clean them up if desired.
 
 Pointers:
 
