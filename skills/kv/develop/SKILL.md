@@ -127,6 +127,38 @@ source changes that triggered the regeneration.
 - Follow the conventions already established in the surrounding code.
 - The style of neighboring files and packages is a lower bar - try to be
   at least as good, but often aiming higher is appropriate.
+- **Minimize function inputs; prefer purity.** Functions and methods should
+  accept the narrowest possible inputs rather than large structs or objects from
+  which only a small piece is used. If a function only needs one field from a
+  large type, pass that field directly. This makes dependencies explicit, keeps
+  functions easier to test, and avoids coupling to unrelated concerns.
+
+  Bad — accepts a full `*cobra.Command` only to check one flag:
+
+  ```go
+  func buildClusterCreateOpts(
+      cmd *cobra.Command,
+      numNodes int,
+      createVMOpts vm.CreateOpts,
+      providerOptsContainer vm.ProviderOptionsContainer,
+  ) ([]*cloud.ClusterCreateOpts, error) {
+      if !cmd.Flags().Changed("gce-machine-type") { ... }
+      // cmd is never used again
+  }
+  ```
+
+  Good — passes the single piece of information the function actually needs:
+
+  ```go
+  func buildClusterCreateOpts(
+      gceMachineTypeChanged bool,
+      numNodes int,
+      createVMOpts vm.CreateOpts,
+      providerOptsContainer vm.ProviderOptionsContainer,
+  ) ([]*cloud.ClusterCreateOpts, error) {
+      if !gceMachineTypeChanged { ... }
+  }
+  ```
 
 ## GitHub Integration
 
