@@ -71,14 +71,33 @@ in the following steps.
 
 ### Read the Source Code
 
-Unless the failure is already well-understood at this point, create a
-CockroachDB source tree for the failing SHA so that you can read the source
-code yourself and understand the test and failure better. Locate the CockroachDB
-repository; it is typically in `$(go env GOPATH)/src/github.com/cockroachdb/cockroach`.
-Then, create a worktree in the workspace:
+Unless the failure is already well-understood at this point, you need access to
+the CockroachDB source tree at the failing SHA so that you can read the source
+code yourself and understand the test and failure better.
+
+**Determine whether you already have a suitable worktree.** Check your current
+working directory (`$PWD`). If it is inside a path that looks like it was
+created specifically for this agent—for example, a subdirectory of
+`$HOME/.cursor` or `$HOME/.claude`—and it is a CockroachDB checkout (contains
+`pkg/cmd/roachtest`), then you are already in a dedicated worktree and should
+use it directly. In that case, check out the failing SHA:
+
+```bash
+git checkout <sha>
+```
+
+> **Note:** Simply being inside *a* worktree is not sufficient. The user may be
+> running the agent from a worktree they actively develop in. Only treat the
+> worktree as "yours" if its path strongly indicates it was set up for agent
+> use (e.g. under `$HOME/.cursor/`, `$HOME/.claude/`, or a similar
+> automation-managed directory).
+
+**Otherwise, create a new worktree.** Locate the CockroachDB repository; it is
+typically in `$(go env GOPATH)/src/github.com/cockroachdb/cockroach`. Then,
+create a worktree in the workspace:
 
 ```
-git -c core.hooksPath=/dev/null -c submodule.recurse=false -c fetch.recurseSubmodules=false worktree add <workspace-path>/cockroach <sha>`
+git -c core.hooksPath=/dev/null -c submodule.recurse=false -c fetch.recurseSubmodules=false worktree add <workspace-path>/cockroach <sha>
 ```
 
 and explore as you see fit.
@@ -165,8 +184,9 @@ forth - it is rare to get here quickly), create a summary in
 ### Making fixes
 
 The user might prompt you to eventually implement a fix/workaround/improvement. When you do so,
-the standard approach should be to start off in a branch off master inside of the worktree created
-for this issue. This is true even if the test failure is on a release branch. Whenever possible, we
+the standard approach should be to start off in a branch off master inside of the worktree you are
+using for this issue (whether a pre-existing dedicated worktree or one you created).
+This is true even if the test failure is on a release branch. Whenever possible, we
 want to fix the issue on master first and address it on older branches through backports. When the
 circumstances don't allow for this (code has been deleted on master, for example) ask the user how
 they would like to proceed.
