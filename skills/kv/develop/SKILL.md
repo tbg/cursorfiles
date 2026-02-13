@@ -149,6 +149,11 @@ source changes that triggered the regeneration.
 - Follow the conventions already established in the surrounding code.
 - The style of neighboring files and packages is a lower bar - try to be
   at least as good, but often aiming higher is appropriate.
+- **Make new types redaction-safe from the start.** Any type that may appear
+  in log messages, error strings, or user-facing output should implement
+  redaction-safe formatting from day one — retrofitting it later is error-prone
+  and easy to forget. For types with a `String()` method, see *String
+  Formatting and Redaction* below. For error types, see *Error Types* below.
 - **Minimize function inputs; prefer purity.** Functions and methods should
   accept the narrowest possible inputs rather than large structs or objects from
   which only a small piece is used. If a function only needs one field from a
@@ -249,6 +254,71 @@ for _, tc := range testCases {
 
 If the struct contains unsafe fields (user-supplied strings, SQL, key contents),
 use `w.Print()` for those and test redacted/unredacted output separately.
+
+## Error Types
+
+Before introducing a new error type, consider whether the `cockroachdb/errors`
+library already provides what you need. It offers many flavors for enriching
+errors — `errors.WithDetail`, `errors.WithHint`, `errors.Mark`,
+`errors.WithSecondaryError`, `errors.WithAssertionFailure`, and more. Browse
+existing usage in the codebase for examples; often, wrapping an existing error
+with additional context is sufficient and avoids the ceremony of a full custom
+type.
+
+When a custom error type **is** warranted — because you need structured fields,
+a marker interface (e.g. `PurgatoryError`), or `errors.As` matching — implement
+the full error contract. A bare struct with only an `Error() string` method is
+**not sufficient**. CockroachDB errors must be redactable, unwrappable, and
+properly formatted.
+
+**Required interfaces and pattern:**
+
+```go
+var _ errors.SafeFormatter = (*FooBarError)(nil)
+var _ fmt.Formatter = (*FooBarError)(nil)
+var _ errors.Wrapper = (*FooBarError)(nil)
+
+// FooBarError indicates that a foo operation failed because bar was not
+// in the expected state.
+type FooBarError struct {
+    FooID int64
+    Cause error
+}
+
+// SafeFormatError implements errors.SafeFormatter.
+func (e *FooBarError) SafeFormatError(p errors.Printer) error {
+    p.Printf("foo %d failed due to bar", e.FooID)
+    return e.Cause
+}
+
+// Format implements fmt.Formatter.
+func (e *FooBarError) Format(s fmt.State, verb rune) { errors.FormatError(e, s, verb) }
+
+// Error implements error.
+func (e *FooBarError) Error() string { return fmt.Sprint(e) }
+
+// Unwrap implements errors.Wrapper.
+func (e *FooBarError) Unwrap() error { return e.Cause }
+```
+
+**Key patterns:**
+
+- **`Error()` delegates to `fmt.Sprint(e)`** — this routes through the
+  `Format` → `SafeFormatError` chain so the error message is always consistent
+  whether printed directly or via `%v`/`%+v`. Never format the message
+  independently in `Error()`.
+- **`SafeFormatError` returns the cause** — this lets the `errors` package
+  chain the cause into formatted output. Don't duplicate the cause's message
+  in the `Printf` call.
+- **Compile-time interface checks** — the `var _ ... = (*T)(nil)` lines at
+  the top catch missing interface implementations at build time.
+- **Pin the output with `echotest`.** Just as with `String()` methods (see
+  *String Formatting and Redaction* above), use an `echotest` to pin the
+  formatted error output so regressions are caught automatically.
+- **Look at existing examples.** `replica_unavailable_error.go` in `kvpb` is
+  a good reference for the full pattern including protobuf-encoded causes and
+  encoder/decoder registration. Search for `SafeFormatError` in the codebase
+  to find more.
 
 ## GitHub Integration
 
