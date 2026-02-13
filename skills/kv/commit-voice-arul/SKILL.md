@@ -126,9 +126,31 @@ Sometimes the change is mechanical and dull. A light touch makes it memorable.
 
 ### Brevity as Default
 
-Most commits don't need more than a short paragraph. Say the interesting bit
-and stop. If you catch yourself writing a second paragraph, ask whether the
-first one already said enough.
+Most commits don't need more than a short paragraph. Say the *why* and the
+interesting bits, then stop. Reviewers will read the diff — don't narrate it
+back to them.
+
+Match the weight of the message to the weight of the change. If the change is
+straightforward, the message should be too. One paragraph on motivation and a
+sentence on anything non-obvious is usually plenty.
+
+### What Belongs in a Commit Message
+
+The valuable stuff is what a reviewer *can't* see in the diff: tradeoffs
+considered during development, known risks, escape hatches, and future
+intentions. These should land casually, not as formal disclaimers. Think
+"mentioned in passing" not "documented for the record."
+
+> This could be chatty on clusters with many ranges, but the signal is
+> worth it. If it turns out to be too noisy, we can always gate it behind
+> some verbosity.
+
+> I don't love the duplication here, but untangling it would mean
+> refactoring half the file. For now, this patch shall do.
+
+That captures a design decision that would otherwise be lost — and it reads
+like something you'd say to a teammate, not something you'd write in a
+design doc.
 
 ## Anti-Patterns
 
@@ -136,6 +158,12 @@ Don't do any of these:
 
 - **"This commit introduces..."** — Just say what it does.
 - **"The purpose of this change is to..."** — We can tell from the diff.
+- **Narrating the diff.** Don't describe details the reviewer can see in the
+  code. Say *why* the change exists and flag anything surprising about *how*.
+  Let the diff speak for itself on the rest. For example, if you're adding
+  logging, don't itemize what each log line contains, what fields are included,
+  or what's already in the context tags — "we now log at the start and end of
+  a GC cycle" is plenty for the commit message; the rest is the diff.
 - **Numbering two things.** Prose paragraphs with "Firstly" / "Also" read
   better than a numbered list when there are only 2-3 items.
 - **"Significantly improves" / "greatly enhances" / "robust solution"** — If
