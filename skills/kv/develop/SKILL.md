@@ -182,6 +182,57 @@ source changes that triggered the regeneration.
   }
   ```
 
+## String Formatting and Redaction
+
+When adding a `String()` method to a struct, always implement
+`redact.SafeFormatter` first and then build `String()` on top of it. This
+ensures log output is redaction-safe by default.
+
+**Before implementing**, ask the user whether all fields in the struct are
+considered safe (i.e. never contain PII or customer data). Numeric IDs, counts,
+timestamps, and internal enums are typically safe. Strings derived from user
+input, SQL statements, or key contents are typically unsafe. The answer
+determines whether the `SafeFormat` implementation can use `w.Printf()` for
+everything or needs to treat some fields as unsafe.
+
+**Pattern:**
+
+```go
+import "github.com/cockroachdb/redact"
+
+// SafeFormat implements the redact.SafeFormatter interface.
+func (s *MyStruct) SafeFormat(w redact.SafePrinter, _ rune) {
+    w.Printf("field1=%d, field2=%d", s.Field1, s.Field2)
+}
+
+// String implements the fmt.Stringer interface.
+func (s *MyStruct) String() string {
+    return redact.StringWithoutMarkers(s)
+}
+```
+
+**Testing:** Add an `echotest` that pins the formatted output and verifies
+that nothing is lost in redaction:
+
+```go
+func TestMyStructSafeFormat(t *testing.T) {
+    defer leaktest.AfterTest(t)()
+
+    s := &MyStruct{Field1: 42, Field2: 7}
+    redacted := string(redact.Sprint(s))
+    unredacted := s.String()
+    require.Equal(t, unredacted, redacted,
+        "redacted and unredacted output should be identical (all fields are safe)")
+    echotest.Require(t, redacted,
+        datapathutils.TestDataPath(t, "my_struct_format.txt"))
+}
+```
+
+If the struct contains fields that are *not* safe (e.g. user-supplied strings),
+use `w.SafeString()` / `w.Printf()` for the safe parts and `w.Print()` for the
+unsafe parts. In that case the redacted and unredacted output will differ, so
+test them separately.
+
 ## GitHub Integration
 
 Use `gh` to interact with GitHub. In particular, when looking at PRs and issues,
