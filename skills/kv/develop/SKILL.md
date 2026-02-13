@@ -211,27 +211,44 @@ func (s *MyStruct) String() string {
 }
 ```
 
-**Testing:** Add an `echotest` that pins the formatted output and verifies
-that nothing is lost in redaction:
+**Testing:** Add an `echotest` that pins the output. Use
+`zerofields.NoZeroField` so new fields can't silently go unprinted, and
+`t.Name()` for testdata paths. For a single case:
 
 ```go
 func TestMyStructSafeFormat(t *testing.T) {
     defer leaktest.AfterTest(t)()
 
-    s := &MyStruct{Field1: 42, Field2: 7}
+    s := MyStruct{Field1: 42, Field2: 7}
+    require.NoError(t, zerofields.NoZeroField(s),
+        "update test and SafeFormat for the new field")
     redacted := string(redact.Sprint(s))
-    unredacted := s.String()
-    require.Equal(t, unredacted, redacted,
+    require.Equal(t, s.String(), redacted,
         "redacted and unredacted output should be identical (all fields are safe)")
     echotest.Require(t, redacted,
-        datapathutils.TestDataPath(t, "my_struct_format.txt"))
+        datapathutils.TestDataPath(t, t.Name()))
 }
 ```
 
-If the struct contains fields that are *not* safe (e.g. user-supplied strings),
-use `w.SafeString()` / `w.Printf()` for the safe parts and `w.Print()` for the
-unsafe parts. In that case the redacted and unredacted output will differ, so
-test them separately.
+Only use table-driven style if there are multiple meaningful cases. Inside
+subtests, `t.Name()` resolves to `testdata/TestParent/subtest`:
+
+```go
+for _, tc := range testCases {
+    t.Run(tc.name, func(t *testing.T) {
+        require.NoError(t, zerofields.NoZeroField(tc.input),
+            "update test and SafeFormat for the new field")
+        redacted := string(redact.Sprint(tc.input))
+        require.Equal(t, tc.input.String(), redacted,
+            "redacted and unredacted output should be identical (all fields are safe)")
+        echotest.Require(t, redacted,
+            datapathutils.TestDataPath(t, t.Name()))
+    })
+}
+```
+
+If the struct contains unsafe fields (user-supplied strings, SQL, key contents),
+use `w.Print()` for those and test redacted/unredacted output separately.
 
 ## GitHub Integration
 
