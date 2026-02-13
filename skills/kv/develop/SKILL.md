@@ -109,6 +109,28 @@ each individual commit. Be mindful of turnaround:
 - **Run the right scope.** Use targeted test runs (specific packages or test
   names) rather than running the entire suite when appropriate.
 
+### Red/Green Testing
+
+Whenever reasonably possible, functional changes should be accompanied by
+changes in test behavior that prove the new behavior works. Follow a red/green
+pattern across commits:
+
+1. **First commit: document current behavior in a test.** Add (or adjust) a test
+   that captures the *existing* behavior — even when that behavior is wrong.
+   This commit's tests pass, establishing a baseline.
+2. **Second commit: fix the code and update the test.** The behavioral fix lands
+   together with the test update so the test now asserts the *correct* behavior.
+
+For example, when fixing a regression, the first commit introduces a test that
+"documents" the bug (the test passes because it expects the buggy output). The
+second commit applies the fix and updates the test expectation to reflect the
+corrected behavior. The reviewer can see exactly what changed and why.
+
+This approach is not a hard rule — don't introduce contrived or throwaway tests
+just to check a box. But when a natural test exists (or is easy to write), the
+two-commit red/green pattern makes the change far easier to review and gives
+confidence that the fix actually addresses the problem.
+
 ## Bazel Build Files
 
 Bazel `BUILD.bazel` files are **auto-generated**. Never edit them by hand.
